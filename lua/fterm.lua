@@ -99,18 +99,13 @@ local function toggle()
 end
 
 local function exec(cmd)
-  local current_win = vim.api.nvim_get_current_win()
-
   if not window_opened() then
     open_window()
   end
 
-  local win = vim.g[FTERM_WIN]
-  vim.api.nvim_set_current_win(win)
-  local wincmd = string.format("lua vim.api.nvim_paste(\"%s\\n\", false, -1)", cmd)
-  vim.cmd(wincmd)
-  vim.cmd("stopinsert")
-  vim.api.nvim_set_current_win(current_win)
+  local buf = vim.g[FTERM_BUF]
+  local channel = vim.api.nvim_buf_get_option(buf, "channel")
+  vim.call("chansend", channel, string.format("%s\n", cmd))
 end
 
 local function add_vim_commands()
