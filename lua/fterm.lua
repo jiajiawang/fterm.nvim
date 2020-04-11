@@ -2,6 +2,19 @@
 
 local FTERM_WIN="fterm_win"
 local FTERM_BUF="fterm_buf"
+local FTERM_WIDTH="fterm_width"
+local FTERM_HEIGHT="fterm_height"
+local FTERM_POSITION="fterm_position"
+
+local FTERM_DEFAULS={
+  position="right",
+  width=80,
+  height=20
+}
+
+local function get_option(name)
+  return vim.g[string.format("fterm_%s", name)] or FTERM_DEFAULS[name]
+end
 
 local function window_opened()
   local win = vim.g[FTERM_WIN]
@@ -31,13 +44,40 @@ local function open_window()
 
   local editor_width = vim.api.nvim_get_option("columns")
   local editor_height = vim.api.nvim_get_option("lines")
-  local width = 100
-  local height = editor_height - 4
-  local row = editor_width - width
-  local col = editor_width - 80
+
+  local position = get_option("position")
+  local row
+  local col
+  local width
+  local height
+  local cmdheight = vim.api.nvim_get_option("cmdheight")
+  
+  if position == "top" then
+    row = 0
+    col = 0
+    width = editor_width
+    height = get_option("height")
+  elseif position == "bottom" then
+    col = 0
+    height = get_option("height")
+    row = editor_height - height - cmdheight - 2
+    width = editor_width
+  elseif  position == "left" then
+    row = 0
+    col = 0
+    width = get_option("width")
+    height = editor_height - 2 - cmdheight
+  else
+    row = 0
+    width = get_option("width")
+    col = editor_width - width
+    height = editor_height - 2 - cmdheight
+  end
+
   local buf = vim.g[FTERM_BUF]
+  print(row, col, width, height)
   win = vim.api.nvim_open_win(buf, true, {
-    relative='win', anchor='NW', row=0, col=col, width=width, height=height, style="minimal"
+    relative='win', anchor='NW', row=row, col=col, width=width, height=height, style="minimal"
   })
 
   local buf_name = vim.api.nvim_buf_get_name(buf)
@@ -73,7 +113,31 @@ local function exec(cmd)
   vim.api.nvim_set_current_win(current_win)
 end
 
+local function add_vim_commands()
+  vim.cmd("command! FTermToggle lua require'fterm'.toggle()")
+  vim.cmd("command! -nargs=1 FTermExec lua require'fterm'.exec(<args>)")
+end
+
+local function config(opts)
+  if opts["position"] then
+    vim.g[FTERM_POSITION] = opts["position"]
+  end
+
+  if opts["width"] then
+    vim.g[FTERM_WIDTH] = opts["width"]
+  end
+
+  if opts["height"] then
+    vim.g[FTERM_HEIGHT] = opts["height"]
+  end
+
+  if opts["commands"] then
+    add_vim_commands()
+  end
+end
+
 return {
-  toggle = toggle,
+  config = config,
   exec = exec,
+  toggle = toggle,
 }
