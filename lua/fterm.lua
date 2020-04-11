@@ -58,6 +58,22 @@ local function toggle()
   open_window()
 end
 
+local function exec(cmd)
+  local current_win = vim.api.nvim_get_current_win()
+
+  if not window_opened() then
+    open_window()
+  end
+
+  local win = vim.g[FTERM_WIN]
+  vim.api.nvim_set_current_win(win)
+  local wincmd = string.format("lua vim.api.nvim_paste(\"%s\\n\", false, -1)", cmd)
+  vim.cmd(wincmd)
+  vim.cmd("stopinsert")
+  vim.api.nvim_set_current_win(current_win)
+end
+
 return {
   toggle = toggle,
+  exec = exec,
 }
