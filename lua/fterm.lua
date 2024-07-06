@@ -42,15 +42,15 @@ local function open_window()
     create_buf()
   end
 
-  local editor_width = vim.api.nvim_get_option("columns")
-  local editor_height = vim.api.nvim_get_option("lines")
+  local editor_width = vim.opt.columns:get()
+  local editor_height = vim.opt.lines:get()
 
   local position = get_option("position")
   local row
   local col
   local width
   local height
-  local cmdheight = vim.api.nvim_get_option("cmdheight")
+  local cmdheight = vim.opt.cmdheight.get()
   
   if position == "top" then
     row = 0
@@ -77,7 +77,7 @@ local function open_window()
   local buf = vim.g[FTERM_BUF]
   print(row, col, width, height)
   win = vim.api.nvim_open_win(buf, true, {
-    relative='win', anchor='NW', row=row, col=col, width=width, height=height, style="minimal"
+    relative='win', anchor='NW', row=row, col=col, width=width, height=height, style="minimal", border="single"
   })
 
   local buf_name = vim.api.nvim_buf_get_name(buf)
@@ -104,7 +104,7 @@ local function exec(cmd)
   end
 
   local buf = vim.g[FTERM_BUF]
-  local channel = vim.api.nvim_buf_get_option(buf, "channel")
+  local channel = vim.api.nvim_buf_get_var(buf, "channel")
   vim.call("chansend", channel, string.format("%s\n", cmd))
 end
 
